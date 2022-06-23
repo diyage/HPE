@@ -31,7 +31,7 @@ class LspDataSet(Dataset):
         self.__images_abs_path, self.__key_points = self.get_images_path_and_key_points()
 
     def get_images_path_and_key_points(self):
-        images_name = os.listdir(os.path.join(self.__root, 'images'))
+        images_name = ['im' + ('000' + str(i+1))[-4:] + '.jpg' for i in range(2000)]
         images_abs_path = [os.path.join(self.__root, 'images', val) for val in images_name]
 
         f = loadmat(os.path.join(self.__root, 'joints.mat'))
