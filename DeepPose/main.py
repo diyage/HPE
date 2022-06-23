@@ -15,5 +15,5 @@ d_test_l = DataLoader(d_test, batch_size=opt_data_set.BATCH_SIZE, shuffle=False)
 
 m = DeepPose(nJoints=len(opt_data_set.key_points)).to(opt_trainer.device)
 
-trainer = DeepPoseTrainer(m, opt=opt_trainer)
+trainer = DeepPoseTrainer(m, opt_trainer=opt_trainer, opt_data_set=opt_data_set)
 trainer.train(d_train_l, d_test_l)

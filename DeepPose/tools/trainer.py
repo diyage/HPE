@@ -2,7 +2,7 @@ import torch
 from tqdm import tqdm
 from torch.optim import Optimizer
 import torch.nn as nn
-from DeepPose.tools.config import TrainerConfig
+from DeepPose.tools.config import TrainerConfig, DataSetConfig
 from DeepPose.tools.visualize import Vis
 import os
 
@@ -11,15 +11,22 @@ class DeepPoseTrainer:
     def __init__(self,
                  model: nn.Module,
                  optimizer: Optimizer = None,
-                 opt: TrainerConfig = None):
+                 opt_trainer: TrainerConfig = None,
+                 opt_data_set: DataSetConfig = None):
         self.model = model
-        if opt is None:
-            self.opt = TrainerConfig()
+
+        if opt_trainer is None:
+            self.opt_trainer = TrainerConfig()
         else:
-            self.opt = opt
+            self.opt_trainer = opt_trainer
+
+        if opt_data_set is None:
+            self.opt_data_set = DataSetConfig()
+        else:
+            self.opt_data_set = opt_data_set
 
         if optimizer is None:
-            self.optimizer = torch.optim.Adam(self.model.parameters(), self.opt.lr)
+            self.optimizer = torch.optim.Adam(self.model.parameters(), self.opt_trainer.lr)
         else:
             self.optimizer = optimizer
 
@@ -27,8 +34,8 @@ class DeepPoseTrainer:
                           data_loader):
         self.model.train()
         for _, (x, y) in enumerate(tqdm(data_loader, desc='training for batch')):
-            x = x.to(self.opt.device)
-            y = y.to(self.opt.device)
+            x = x.to(self.opt_trainer.device)
+            y = y.to(self.opt_trainer.device)
             out = self.model(x)
             loss = nn.MSELoss()(out, y)
 
@@ -44,22 +51,26 @@ class DeepPoseTrainer:
         self.model.eval()
 
         for batch_index, (x, y) in enumerate(tqdm(data_loader, desc='testing for batch')):
-            x = x.to(self.opt.device)
-            y = y.to(self.opt.device)
+            x = x.to(self.opt_trainer.device)
+            y = y.to(self.opt_trainer.device)
             out = self.model(x)
 
             for index in range(x.shape[0]):
                 saved_abs_path = os.path.join(saved_dir, '{}_{}_right.png'.format(batch_index, index))
-                Vis.plot_key_points(x[index], y[index], saved_abs_path)
+                Vis.plot_key_points(x[index], y[index],
+                                    connections=self.opt_data_set.connections,
+                                    saved_abs_path=saved_abs_path)
                 saved_abs_path = os.path.join(saved_dir, '{}_{}_predict.png'.format(batch_index, index))
-                Vis.plot_key_points(x[index], out[index], saved_abs_path)
+                Vis.plot_key_points(x[index], out[index],
+                                    connections=self.opt_data_set.connections,
+                                    saved_abs_path=saved_abs_path)
 
     def train(self,
               data_loader_train,
               data_loader_test,):
-        for epoch in tqdm(range(self.opt.MAX_EPOCH), desc='training for epoch'):
+        for epoch in tqdm(range(self.opt_trainer.MAX_EPOCH), desc='training for epoch'):
             self.__train_one_epoch(data_loader_train)
-            saved_dir = self.opt.ABS_PATH + os.getcwd() + '/eval_images/{}/'.format(epoch)
+            saved_dir = self.opt_trainer.ABS_PATH + os.getcwd() + '/eval_images/{}/'.format(epoch)
             self.eval(data_loader_test, saved_dir)
 
 
