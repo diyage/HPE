@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 
 data_set_config = DataSetConfig()
-data_set_config.sigma = 0.01
+data_set_config.sigma = 0.02
 
 d = LspDataSet(root='E:\PyCharm\DataSet\lsp', data_set_opt=data_set_config)
 dl = DataLoader(d, batch_size=2, shuffle=False)
@@ -19,7 +19,7 @@ for _, info in enumerate(dl):
     image = info['image']  # type: torch.Tensor
     gt_map = info['gt_map']  # type: torch.Tensor
     center_map = info['center_map']  # type: torch.Tensor
-    index = 1
+    index = 0
 
     im = image[index].numpy()
     im = np.transpose(im, axes=(1, 2, 0))
