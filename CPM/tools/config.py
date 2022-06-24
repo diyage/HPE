@@ -11,7 +11,7 @@ class DataSetConfig:
     root_path = '/home/dell/data/LSP/lsp_dataset'
     connections: list = [(0, 1), (1, 2), (3, 4), (4, 5), (6, 7), (7, 8), (9, 10), (10, 11), (8, 12), (9, 12),
                          (12, 13), ((2, 3), 12), ((2, 3), 2), ((2, 3), 3)]
-    BATCH_SIZE: int = 64
+    BATCH_SIZE: int = 32
 
 
 class TrainerConfig:
