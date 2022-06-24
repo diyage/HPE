@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 
 data_set_config = DataSetConfig()
-data_set_config.sigma = 0.02
+data_set_config.sigma = 10
 
 d = LspDataSet(root='E:\PyCharm\DataSet\lsp', data_set_opt=data_set_config)
 dl = DataLoader(d, batch_size=2, shuffle=False)
