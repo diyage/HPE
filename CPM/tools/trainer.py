@@ -58,7 +58,7 @@ class CPMTrainer:
         os.makedirs(saved_dir, exist_ok=True)
         self.model.eval()
 
-        for batch_index, info in enumerate(tqdm(data_loader, desc='testing for batch')):
+        for batch_index, info in enumerate(data_loader):
             image = info['image']  # type: torch.Tensor
             gt_map = info['gt_map']  # type: torch.Tensor
             center_map = info['center_map']  # type: torch.Tensor
@@ -69,6 +69,8 @@ class CPMTrainer:
 
             out = self.model(x, c)
             out = out[:, -1]
+
+            assert out.shape == y.shape
 
             for index in range(x.shape[0]):
                 saved_abs_path = os.path.join(saved_dir, '{}_{}_right.png'.format(batch_index, index))
