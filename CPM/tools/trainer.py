@@ -44,9 +44,10 @@ class CPMTrainer:
             c = center_map.to(self.opt_trainer.device)
 
             out = self.model(x, c)
-            y = y.unsqueeze(1).expand_as(out)
-            loss = nn.MSELoss()(out, y)
-
+            loss_vec = []
+            for i in range(out.shape[1]):
+                loss_vec.append(nn.MSELoss()(out[:, i], y))
+            loss = sum(loss_vec)/len(loss_vec)
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
