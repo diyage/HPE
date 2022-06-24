@@ -68,6 +68,7 @@ class CPMNet(nn.Module):
         self.Mconv3_stage6 = nn.Conv2d(128, 128, kernel_size=11, padding=5)
         self.Mconv4_stage6 = nn.Conv2d(128, 128, kernel_size=1, padding=0)
         self.Mconv5_stage6 = nn.Conv2d(128, self.out_c + 1, kernel_size=1, padding=0)
+        self.relu = nn.ReLU()
 
     def _stage1(self, image):
         """
@@ -75,12 +76,12 @@ class CPMNet(nn.Module):
         :param image: source image with (368, 368)
         :return: conv7_stage1_map
         """
-        x = self.pool1_stage1(F.relu(self.conv1_stage1(image)))
-        x = self.pool2_stage1(F.relu(self.conv2_stage1(x)))
-        x = self.pool3_stage1(F.relu(self.conv3_stage1(x)))
-        x = F.relu(self.conv4_stage1(x))
-        x = F.relu(self.conv5_stage1(x))
-        x = F.relu(self.conv6_stage1(x))
+        x = self.pool1_stage1(self.relu(self.conv1_stage1(image)))
+        x = self.pool2_stage1(self.relu(self.conv2_stage1(x)))
+        x = self.pool3_stage1(self.relu(self.conv3_stage1(x)))
+        x = self.relu(self.conv4_stage1(x))
+        x = self.relu(self.conv5_stage1(x))
+        x = self.relu(self.conv6_stage1(x))
         x = self.conv7_stage1(x)
 
         return x
@@ -91,9 +92,9 @@ class CPMNet(nn.Module):
         :param image: source image with (368, 368)
         :return: pool3_stage2_map
         """
-        x = self.pool1_stage2(F.relu(self.conv1_stage2(image)))
-        x = self.pool2_stage2(F.relu(self.conv2_stage2(x)))
-        x = self.pool3_stage2(F.relu(self.conv3_stage2(x)))
+        x = self.pool1_stage2(self.relu(self.conv1_stage2(image)))
+        x = self.pool2_stage2(self.relu(self.conv2_stage2(x)))
+        x = self.pool3_stage2(self.relu(self.conv3_stage2(x)))
 
         return x
 
@@ -105,12 +106,12 @@ class CPMNet(nn.Module):
         :param pool_center_lower_map:
         :return: Mconv5_stage2_map
         """
-        x = F.relu(self.conv4_stage2(pool3_stage2_map))
+        x = self.relu(self.conv4_stage2(pool3_stage2_map))
         x = torch.cat([x, conv7_stage1_map, pool_center_lower_map], dim=1)
-        x = F.relu(self.Mconv1_stage2(x))
-        x = F.relu(self.Mconv2_stage2(x))
-        x = F.relu(self.Mconv3_stage2(x))
-        x = F.relu(self.Mconv4_stage2(x))
+        x = self.relu(self.Mconv1_stage2(x))
+        x = self.relu(self.Mconv2_stage2(x))
+        x = self.relu(self.Mconv3_stage2(x))
+        x = self.relu(self.Mconv4_stage2(x))
         x = self.Mconv5_stage2(x)
 
         return x
@@ -123,12 +124,12 @@ class CPMNet(nn.Module):
         :param pool_center_lower_map:
         :return: Mconv5_stage3_map
         """
-        x = F.relu(self.conv1_stage3(pool3_stage2_map))
+        x = self.relu(self.conv1_stage3(pool3_stage2_map))
         x = torch.cat([x, Mconv5_stage2_map, pool_center_lower_map], dim=1)
-        x = F.relu(self.Mconv1_stage3(x))
-        x = F.relu(self.Mconv2_stage3(x))
-        x = F.relu(self.Mconv3_stage3(x))
-        x = F.relu(self.Mconv4_stage3(x))
+        x = self.relu(self.Mconv1_stage3(x))
+        x = self.relu(self.Mconv2_stage3(x))
+        x = self.relu(self.Mconv3_stage3(x))
+        x = self.relu(self.Mconv4_stage3(x))
         x = self.Mconv5_stage3(x)
 
         return x
@@ -141,12 +142,12 @@ class CPMNet(nn.Module):
         :param pool_center_lower_map:
         :return:Mconv5_stage4_map
         """
-        x = F.relu(self.conv1_stage4(pool3_stage2_map))
+        x = self.relu(self.conv1_stage4(pool3_stage2_map))
         x = torch.cat([x, Mconv5_stage3_map, pool_center_lower_map], dim=1)
-        x = F.relu(self.Mconv1_stage4(x))
-        x = F.relu(self.Mconv2_stage4(x))
-        x = F.relu(self.Mconv3_stage4(x))
-        x = F.relu(self.Mconv4_stage4(x))
+        x = self.relu(self.Mconv1_stage4(x))
+        x = self.relu(self.Mconv2_stage4(x))
+        x = self.relu(self.Mconv3_stage4(x))
+        x = self.relu(self.Mconv4_stage4(x))
         x = self.Mconv5_stage4(x)
 
         return x
@@ -159,12 +160,12 @@ class CPMNet(nn.Module):
         :param pool_center_lower_map:
         :return:Mconv5_stage5_map
         """
-        x = F.relu(self.conv1_stage5(pool3_stage2_map))
+        x = self.relu(self.conv1_stage5(pool3_stage2_map))
         x = torch.cat([x, Mconv5_stage4_map, pool_center_lower_map], dim=1)
-        x = F.relu(self.Mconv1_stage5(x))
-        x = F.relu(self.Mconv2_stage5(x))
-        x = F.relu(self.Mconv3_stage5(x))
-        x = F.relu(self.Mconv4_stage5(x))
+        x = self.relu(self.Mconv1_stage5(x))
+        x = self.relu(self.Mconv2_stage5(x))
+        x = self.relu(self.Mconv3_stage5(x))
+        x = self.relu(self.Mconv4_stage5(x))
         x = self.Mconv5_stage5(x)
 
         return x
@@ -177,12 +178,12 @@ class CPMNet(nn.Module):
         :param pool_center_lower_map:
         :return:Mconv5_stage6_map
         """
-        x = F.relu(self.conv1_stage6(pool3_stage2_map))
+        x = self.relu(self.conv1_stage6(pool3_stage2_map))
         x = torch.cat([x, Mconv5_stage5_map, pool_center_lower_map], dim=1)
-        x = F.relu(self.Mconv1_stage6(x))
-        x = F.relu(self.Mconv2_stage6(x))
-        x = F.relu(self.Mconv3_stage6(x))
-        x = F.relu(self.Mconv4_stage6(x))
+        x = self.relu(self.Mconv1_stage6(x))
+        x = self.relu(self.Mconv2_stage6(x))
+        x = self.relu(self.Mconv3_stage6(x))
+        x = self.relu(self.Mconv4_stage6(x))
         x = self.Mconv5_stage6(x)
 
         return x
