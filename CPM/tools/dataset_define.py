@@ -129,4 +129,6 @@ def guassian_kernel(size_w, size_h, center_x, center_y, sigma):
     sigma = sigma * np.sqrt(size_w * size_h)
     gridy, gridx = np.mgrid[0:size_h, 0:size_w]
     D2 = (gridx - center_x) ** 2 + (gridy - center_y) ** 2
-    return np.exp(-D2 / 2.0 / sigma / sigma)
+    ans = np.exp(-D2 / 2.0 / sigma / sigma)
+    ans += 1e-8
+    return ans
