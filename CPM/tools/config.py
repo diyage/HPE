@@ -15,7 +15,7 @@ class DataSetConfig:
 
 
 class TrainerConfig:
-    lr: float = 1e-2
+    lr: float = 2e-4
     device: str = 'cuda:1'
     MAX_EPOCH: int = 2000
     ABS_PATH: str = '/home/dell/data2/models/'
