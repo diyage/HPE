@@ -23,6 +23,6 @@ dl_2 = DataLoader(d_2, batch_size=2, shuffle=False)
 from CPM.tools.evaluation import OKS
 
 oks = OKS(m, dl, 368, 368)
-
-oks.compute(dl_2)
-
+print(oks.sigma)
+res = oks.compute(dl_2)
+print(res)
