@@ -5,6 +5,7 @@ import torch.nn as nn
 from CPM.tools.config import TrainerConfig, DataSetConfig
 from CPM.tools.visualize import Vis
 import os
+from CPM.tools.evaluation import OKS
 
 
 class CPMTrainer:
@@ -90,4 +91,12 @@ class CPMTrainer:
         for epoch in tqdm(range(self.opt_trainer.MAX_EPOCH), desc='training for epoch'):
             self.__train_one_epoch(data_loader_train)
             saved_dir = self.opt_trainer.ABS_PATH + os.getcwd() + '/eval_images/{}/'.format(epoch)
-            self.eval(data_loader_test, saved_dir)
+
+            if epoch % 10 == 0:
+                # eval image
+                self.eval(data_loader_test, saved_dir)
+
+                # eval oks
+                oks_eval = OKS(self.model, data_loader_train, self.opt_data_set.image_h, self.opt_data_set.image_w)
+                oks = oks_eval.compute(data_loader_test)
+                print('epoch: {}, oks: {:.3f}'.format(epoch, oks))
