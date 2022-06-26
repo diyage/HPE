@@ -87,7 +87,7 @@ class LspDataSet(Dataset):
                                   self.__dataset_opt.heat_map_h,
                                   now_key_point[0],
                                   now_key_point[1],
-                                  self.__dataset_opt.sigma)
+                                  self.__dataset_opt.heat_map_sigma)
             gt_heat_map.append(tmp)
         # # for background
         gt_map = np.array(gt_heat_map)
@@ -109,7 +109,7 @@ class LspDataSet(Dataset):
                                      self.__dataset_opt.image_h,
                                      center_x,
                                      center_y,
-                                     self.__dataset_opt.sigma)
+                                     self.__dataset_opt.heat_map_sigma)
 
         res = {
             'image': self.__transform(image),

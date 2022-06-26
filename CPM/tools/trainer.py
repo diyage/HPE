@@ -63,13 +63,11 @@ class CPMTrainer:
         for batch_index, info in enumerate(data_loader):
             image = info['image']  # type: torch.Tensor
             gt_map = info['gt_map']  # type: torch.Tensor
-            center_map = info['center_map']  # type: torch.Tensor
 
             x = image.to(self.opt_trainer.device)
             y = gt_map.to(self.opt_trainer.device)
-            c = center_map.to(self.opt_trainer.device)
 
-            out = self.model(x, c)
+            out = self.model(x, heat_map_sigma=self.opt_data_set.heat_map_sigma)
             out = out[:, -1]
 
             assert out.shape == y.shape
@@ -102,5 +100,8 @@ class CPMTrainer:
                                self.opt_data_set.image_h,
                                self.opt_data_set.image_w)
 
-                res = oks_eval.eval_map(data_loader_test, self.opt_trainer.MAP_Threshold)
+                res = oks_eval.eval_map(data_loader_test,
+                                        self.opt_data_set.heat_map_sigma,
+                                        self.opt_trainer.MAP_Threshold
+                                        )
                 print('epoch: {}, map: {:.3f}'.format(epoch, res))

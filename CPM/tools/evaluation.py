@@ -16,7 +16,7 @@ class OKS:
         self.model = model
         self.image_h = image_h
         self.image_w = image_w
-        self.sigma = self.__compute_sigma(data_loader_for_compute_sigma)
+        self.oks_sigma = self.__compute_sigma(data_loader_for_compute_sigma)
 
     @staticmethod
     def compute_std_for_batch(out_map: torch.Tensor,
@@ -97,20 +97,20 @@ class OKS:
             return np.array(res)
 
     def eval_oks(self,
-                 data_loader: DataLoader):
+                 data_loader: DataLoader,
+                 heat_map_sigma: float):
         self.model.eval()
         device = next(self.model.parameters()).device
         res = []
         for _, info in enumerate(data_loader):
             image = info['image'].to(device)
             gt_map = info['gt_map'].to(device)
-            center_map = info['center_map'].to(device)
 
-            out = self.model(image, center_map)
+            out = self.model(image, heat_map_sigma=heat_map_sigma)
 
             oks = self.compute_oks_for_batch(out[:, -1],
                                              gt_map,
-                                             self.sigma,
+                                             self.oks_sigma,
                                              self.image_h,
                                              self.image_w,
                                              average=True)
@@ -120,6 +120,7 @@ class OKS:
 
     def eval_map(self,
                  data_loader: DataLoader,
+                 heat_map_sigma: float,
                  oks_threshold: list):
 
         self.model.eval()
@@ -128,13 +129,12 @@ class OKS:
         for _, info in enumerate(data_loader):
             image = info['image'].to(device)
             gt_map = info['gt_map'].to(device)
-            center_map = info['center_map'].to(device)
 
-            out = self.model(image, center_map)
+            out = self.model(image, heat_map_sigma=heat_map_sigma)
 
             oks = self.compute_oks_for_batch(out[:, -1],
                                              gt_map,
-                                             self.sigma,
+                                             self.oks_sigma,
                                              self.image_h,
                                              self.image_w,
                                              average=False)
