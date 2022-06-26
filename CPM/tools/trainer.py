@@ -103,5 +103,5 @@ class CPMTrainer:
                                self.opt_data_set.image_w,
                                threshold_for_map=self.opt_trainer.MAP_Threshold)
 
-                oks = oks_eval.compute(data_loader_test)
-                print('epoch: {}, oks: {:.3f}'.format(epoch, oks))
+                res = oks_eval.compute(data_loader_test)
+                print('epoch: {}, map: {:.3f}'.format(epoch, res))
