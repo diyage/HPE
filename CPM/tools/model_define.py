@@ -195,7 +195,7 @@ class CPMNet(nn.Module):
             # eval phase
             center_map = guassian_kernel(self.img_w, self.img_h, self.img_w/2, self.img_h/2, heat_map_sigma)
             center_map = torch.tensor(center_map, dtype=torch.float32).to(image.device)
-            center_map = center_map.unsequeeze(0).expand(image.shape[0], image.shape[2], image.shape[3])
+            center_map = center_map.unsqueeze(0).expand(image.shape[0], image.shape[2], image.shape[3])
 
         pool_center_lower_map = self.pool_center_lower(center_map)
         pool_center_lower_map = pool_center_lower_map.unsqueeze(1)
