@@ -100,8 +100,7 @@ class CPMTrainer:
                 oks_eval = OKS(self.model,
                                data_loader_train,
                                self.opt_data_set.image_h,
-                               self.opt_data_set.image_w,
-                               threshold_for_map=self.opt_trainer.MAP_Threshold)
+                               self.opt_data_set.image_w)
 
-                res = oks_eval.compute(data_loader_test)
+                res = oks_eval.eval_map(data_loader_test, self.opt_trainer.MAP_Threshold)
                 print('epoch: {}, map: {:.3f}'.format(epoch, res))

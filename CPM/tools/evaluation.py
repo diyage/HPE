@@ -12,12 +12,11 @@ class OKS:
                  data_loader_for_compute_sigma: DataLoader,
                  image_h: int,
                  image_w: int,
-                 threshold_for_map: list = None):
+                 ):
         self.model = model
         self.image_h = image_h
         self.image_w = image_w
         self.sigma = self.__compute_sigma(data_loader_for_compute_sigma)
-        self.threshold_for_map = threshold_for_map
 
     @staticmethod
     def compute_std_for_batch(out_map: torch.Tensor,
@@ -70,7 +69,8 @@ class OKS:
                               gt_map: torch.Tensor,
                               sigma: np.ndarray,
                               image_h: int,
-                              image_w: int, ):
+                              image_w: int,
+                              average: bool = True):
         assert out_map.shape == gt_map.shape
         variances = (2 * sigma) ** 2
         image_num, joints_num = gt_map.shape[0], gt_map.shape[1] - 1
@@ -91,10 +91,36 @@ class OKS:
                 e = ((out_x - gt_x) ** 2 + (out_y - gt_y) ** 2) / 2 / s_square / variances
                 res[j].append(np.exp(-e))
 
+        if average:
+            return np.mean(res)
+        else:
+            return np.array(res)
+
+    def eval_oks(self,
+                 data_loader: DataLoader):
+        self.model.eval()
+        device = next(self.model.parameters()).device
+        res = []
+        for _, info in enumerate(data_loader):
+            image = info['image'].to(device)
+            gt_map = info['gt_map'].to(device)
+            center_map = info['center_map'].to(device)
+
+            out = self.model(image, center_map)
+
+            oks = self.compute_oks_for_batch(out[:, -1],
+                                             gt_map,
+                                             self.sigma,
+                                             self.image_h,
+                                             self.image_w,
+                                             average=True)
+            res.append(oks)
+        res = np.array(res)
         return np.mean(res)
 
-    def compute(self,
-                data_loader: DataLoader):
+    def eval_map(self,
+                 data_loader: DataLoader,
+                 oks_threshold: list):
 
         self.model.eval()
         device = next(self.model.parameters()).device
@@ -106,16 +132,20 @@ class OKS:
 
             out = self.model(image, center_map)
 
-            oks = self.compute_oks_for_batch(out[:, -1], gt_map, self.sigma, self.image_h, self.image_w)
+            oks = self.compute_oks_for_batch(out[:, -1],
+                                             gt_map,
+                                             self.sigma,
+                                             self.image_h,
+                                             self.image_w,
+                                             average=False)
+            # joints_num * batch_num
+            oks = np.mean(oks, axis=0)  # batch_num
 
-            if self.threshold_for_map is None:
-                res.append(oks)
-            else:
-                for val in self.threshold_for_map:
-                    if oks > val:
-                        res.append(1.0)
-                    else:
-                        res.append(0.0)
+            for threshold in oks_threshold:
+                a = np.size(oks[oks > threshold])
+                b = np.size(oks)
+                res.append(1.0*a/b)
 
         res = np.array(res)
         return np.mean(res)
+
