@@ -51,9 +51,8 @@ class OKS:
 
         self.model.eval()
         res = []
-        from tqdm import tqdm
         device = next(self.model.parameters()).device
-        for _, info in enumerate(tqdm(data_loader, desc='Compute sigma --> ')):
+        for _, info in enumerate(data_loader):
             image = info['image'].to(device)
             gt_map = info['gt_map'].to(device)
             center_map = info['center_map'].to(device)
