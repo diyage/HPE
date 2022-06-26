@@ -11,11 +11,13 @@ class OKS:
                  model: nn.Module,
                  data_loader_for_compute_sigma: DataLoader,
                  image_h: int,
-                 image_w: int):
+                 image_w: int,
+                 threshold_for_map: list = None):
         self.model = model
         self.image_h = image_h
         self.image_w = image_w
         self.sigma = self.__compute_sigma(data_loader_for_compute_sigma)
+        self.threshold_for_map = threshold_for_map
 
     @staticmethod
     def compute_std_for_batch(out_map: torch.Tensor,
@@ -106,8 +108,15 @@ class OKS:
             out = self.model(image, center_map)
 
             oks = self.compute_oks_for_batch(out[:, -1], gt_map, self.sigma, self.image_h, self.image_w)
-            res.append(oks)
+
+            if self.threshold_for_map is None:
+                res.append(oks)
+            else:
+                for val in self.threshold_for_map:
+                    if oks > val:
+                        res.append(1.0)
+                    else:
+                        res.append(0.0)
 
         res = np.array(res)
-
         return np.mean(res)

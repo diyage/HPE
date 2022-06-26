@@ -97,6 +97,11 @@ class CPMTrainer:
                 self.eval(data_loader_test, saved_dir)
 
                 # eval oks
-                oks_eval = OKS(self.model, data_loader_train, self.opt_data_set.image_h, self.opt_data_set.image_w)
+                oks_eval = OKS(self.model,
+                               data_loader_train,
+                               self.opt_data_set.image_h,
+                               self.opt_data_set.image_w,
+                               threshold_for_map=self.opt_trainer.MAP_Threshold)
+
                 oks = oks_eval.compute(data_loader_test)
                 print('epoch: {}, oks: {:.3f}'.format(epoch, oks))
