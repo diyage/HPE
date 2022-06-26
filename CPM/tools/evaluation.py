@@ -88,7 +88,7 @@ class OKS:
                 out_x, out_y = Vis.get_matrix_max_pos(out_map_reverse)
                 gt_x, gt_y = Vis.get_matrix_max_pos(gt_map_reverse)
 
-                e = ((out_x - gt_x) ** 2 + (out_y - gt_y) ** 2) / 2 / s_square / variances
+                e = ((out_x - gt_x) ** 2 + (out_y - gt_y) ** 2) / 2 / s_square / variances[j]
                 res[j].append(np.exp(-e))
 
         if average:
