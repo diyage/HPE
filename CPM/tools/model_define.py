@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import torch
 from CPM.tools.config import DataSetConfig
 from CPM.tools.dataset_define import guassian_kernel
+import numpy as np
 
 
 class CPMNet(nn.Module):
@@ -289,4 +290,27 @@ class CPMNet(nn.Module):
 
         return torch.stack([conv7_stage1_map, Mconv5_stage2_map, Mconv5_stage3_map,
                             Mconv5_stage4_map, Mconv5_stage5_map, Mconv5_stage6_map], dim=1)
+
+    def get_best_out(self,
+                     out: torch.Tensor)->torch.Tensor:
+        '''
+
+        :param out:  heat map [N, stage_num, key_points_num+1, heat_map_h,  heat_map_w]
+        :return: best_out: [N, key_points_num+1, heat_map_h,  heat_map_w]
+        '''
+        device = out.device
+
+        out = out.cpu().detach().numpy()
+
+        res = []
+        for i in range(out.shape[0]):
+            tmp = []
+            for j in range(out.shape[2]):
+                out_of_now_key_point = out[i, :, j]  # stage_num, heat_map_h,  heat_map_w
+                max_ind = np.unravel_index(np.argmax(out_of_now_key_point), shape=out_of_now_key_point.shape)
+                tmp.append(out_of_now_key_point[max_ind[0]])
+            res.append(tmp)
+
+        return torch.from_numpy(np.array(res)).to(device)
+
 

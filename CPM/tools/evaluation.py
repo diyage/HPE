@@ -4,11 +4,12 @@ import torch.nn as nn
 import numpy as np
 from CPM.tools.visualize import Vis
 from DeepPose.tools.cv2_ import CV2
+from CPM.tools.model_define import CPMNet
 
 
 class OKS:
     def __init__(self,
-                 model: nn.Module,
+                 model: CPMNet,
                  data_loader_for_compute_sigma: DataLoader,
                  image_h: int,
                  image_w: int,
@@ -131,8 +132,12 @@ class OKS:
             gt_map = info['gt_map'].to(device)
 
             out = self.model(image, heat_map_sigma=heat_map_sigma)
+            # out = out[:, -1]
+            out = self.model.get_best_out(out)
 
-            oks = self.compute_oks_for_batch(out[:, -1],
+            assert out.shape == gt_map.shape
+
+            oks = self.compute_oks_for_batch(out,
                                              gt_map,
                                              self.oks_sigma,
                                              self.image_h,

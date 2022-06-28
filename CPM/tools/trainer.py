@@ -6,11 +6,12 @@ from CPM.tools.config import TrainerConfig, DataSetConfig
 from CPM.tools.visualize import Vis
 import os
 from CPM.tools.evaluation import OKS
+from CPM.tools.model_define import CPMNet
 
 
 class CPMTrainer:
     def __init__(self,
-                 model: nn.Module,
+                 model: CPMNet,
                  optimizer: Optimizer = None,
                  opt_trainer: TrainerConfig = None,
                  opt_data_set: DataSetConfig = None):
@@ -68,7 +69,8 @@ class CPMTrainer:
             y = gt_map.to(self.opt_trainer.device)
 
             out = self.model(x, heat_map_sigma=self.opt_data_set.heat_map_sigma)
-            out = out[:, -1]
+            # out = out[:, -1]
+            out = self.model.get_best_out(out)
 
             assert out.shape == y.shape
 
