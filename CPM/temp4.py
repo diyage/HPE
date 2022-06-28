@@ -13,3 +13,4 @@ from CPM.tools.visualize import Vis
 from DeepPose.tools.cv2_ import CV2
 from CPM.tools.dataset_define import guassian_kernel
 
+from mmpose.models import CPM
