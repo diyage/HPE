@@ -58,8 +58,11 @@ class OKS:
             center_map = info['center_map'].to(device)
 
             out = self.model(image, center_map)
+            # out = out[:, -1]
+            out = self.model.get_best_out(out)
+            assert out.shape == gt_map.shape
 
-            sig = self.compute_std_for_batch(out[:, -1], gt_map, self.image_h, self.image_w)
+            sig = self.compute_std_for_batch(out, gt_map, self.image_h, self.image_w)
             res.append(sig)
 
         res = np.array(res)
@@ -108,8 +111,11 @@ class OKS:
             gt_map = info['gt_map'].to(device)
 
             out = self.model(image, heat_map_sigma=heat_map_sigma)
+            # out = out[:, -1]
+            out = self.model.get_best_out(out)
+            assert out.shape == gt_map.shape
 
-            oks = self.compute_oks_for_batch(out[:, -1],
+            oks = self.compute_oks_for_batch(out,
                                              gt_map,
                                              self.oks_sigma,
                                              self.image_h,
@@ -134,7 +140,6 @@ class OKS:
             out = self.model(image, heat_map_sigma=heat_map_sigma)
             # out = out[:, -1]
             out = self.model.get_best_out(out)
-
             assert out.shape == gt_map.shape
 
             oks = self.compute_oks_for_batch(out,
