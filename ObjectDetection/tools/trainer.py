@@ -51,8 +51,8 @@ class YOLOV1Trainer:
 
             pre_targets = self.yolo_tools.make_targets(labels)
             pre_targets = pre_targets.cuda()
-            # loss = self.yolo_loss_fn(ouput, pre_targets)[0]  # type: torch.Tensor
-            loss = self.right_yolo_loss(ouput, pre_targets)  # type: torch.Tensor
+            loss = self.yolo_loss_fn(ouput, pre_targets)[0]  # type: torch.Tensor
+            # loss = self.right_yolo_loss(ouput, pre_targets)  # type: torch.Tensor
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()

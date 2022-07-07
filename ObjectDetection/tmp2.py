@@ -51,4 +51,3 @@ yolo_trainer = YOLOV1Trainer(net,
                              yolo_v1_tools,
                              yolo_predictor)
 yolo_trainer.train(train_l, test_l)
-

@@ -78,8 +78,8 @@ class Loss(nn.Module):
         batch_size = pred_tensor.size(0)
         coord_mask = target_tensor[:, :, :, 4] > 0   # mask for the cells which contain objects. [n_batch, S, S]
         noobj_mask = target_tensor[:, :, :, 4] == 0  # mask for the cells which do not contain objects. [n_batch, S, S]
-        coord_mask = coord_mask.unsqueeze(-1).expand_as(target_tensor)  # [n_batch, S, S] -> [n_batch, S, S, N]
-        noobj_mask = noobj_mask.unsqueeze(-1).expand_as(target_tensor)  # [n_batch, S, S] -> [n_batch, S, S, N]
+        coord_mask = coord_mask.unsqueeze(-1).expand_as(target_tensor).bool()  # [n_batch, S, S] -> [n_batch, S, S, N]
+        noobj_mask = noobj_mask.unsqueeze(-1).expand_as(target_tensor).bool()  # [n_batch, S, S] -> [n_batch, S, S, N]
 
         coord_pred = pred_tensor[coord_mask].view(-1, N)            # pred tensor on the cells which contain objects. [n_coord, N]
                                                                     # n_coord: number of the cells which contain objects.
@@ -98,7 +98,8 @@ class Loss(nn.Module):
                                                                 # n_noobj: number of the cells which do not contain objects.
         noobj_conf_mask = torch.cuda.ByteTensor(noobj_pred.size()).fill_(0) # [n_noobj, N]
         for b in range(B):
-            noobj_conf_mask[:, 4 + b*5] = 1 # noobj_conf_mask[:, 4] = 1; noobj_conf_mask[:, 9] = 1
+            noobj_conf_mask[:, 4 + b*5] = 1  # noobj_conf_mask[:, 4] = 1; noobj_conf_mask[:, 9] = 1
+        noobj_conf_mask = noobj_conf_mask.bool()
         noobj_pred_conf = noobj_pred[noobj_conf_mask]       # [n_noobj, 2=len([conf1, conf2])]
         noobj_target_conf = noobj_target[noobj_conf_mask]   # [n_noobj, 2=len([conf1, conf2])]
         loss_noobj = F.mse_loss(noobj_pred_conf, noobj_target_conf, reduction='sum')
@@ -122,7 +123,7 @@ class Loss(nn.Module):
             target_xyxy = Variable(torch.FloatTensor(target.size())) # [1, 5=len([x1, y1, x2, y2, conf])]
             # Because (center_x,center_y)=target[:, 2] and (w,h)=target[:,2:4] are normalized for cell-size and image-size respectively,
             # rescale (center_x,center_y) for the image-size to compute IoU correctly.
-            target_xyxy[:,  :2] = target[:, :2]/float(S) - 0.5 * target[:, 2:4]
+            target_xyxy[:, :2] = target[:, :2]/float(S) - 0.5 * target[:, 2:4]
             target_xyxy[:, 2:4] = target[:, :2]/float(S) + 0.5 * target[:, 2:4]
 
             iou = self.compute_iou(pred_xyxy[:, :4], target_xyxy[:, :4]) # [B, 1]
@@ -137,7 +138,7 @@ class Loss(nn.Module):
 
             bbox_target_iou[i+max_index, torch.LongTensor([4]).cuda()] = (max_iou).data.cuda()
         bbox_target_iou = Variable(bbox_target_iou).cuda()
-
+        coord_response_mask = coord_response_mask.bool()
         # BBox location/size and objectness loss for the response bboxes.
         bbox_pred_response = bbox_pred[coord_response_mask].view(-1, 5)      # [n_response, 5]
         bbox_target_response = bbox_target[coord_response_mask].view(-1, 5)  # [n_response, 5], only the first 4=(x, y, w, h) are used
@@ -222,91 +223,91 @@ class YoLoV1Loss(nn.Module):
         mask[:, :, :, 10:] = 1.0
         return mask * obj_grid_mask
 
-    def forward(self, output: torch.Tensor, target: torch.Tensor) -> tuple:
-
-        obj_grid_mask, obj_grid_box_mask, no_obj_grid_box_mask = self.__get_grid_and_grid_box_mask(output, target)
-
-        all_square = (output-target)**2
-
-        ##########################################
-        position_loss_mask = self.__get_position_loss_mask(obj_grid_box_mask)
-        position_loss = position_loss_mask.to(all_square.device) * all_square
-        position_loss = self.pos_weight * position_loss.sum()
-        ##########################################
-
-        ##########################################
-        obj_conf_loss_mask = self.__get_obj_conf_loss_mask(obj_grid_box_mask)
-        obj_conf_loss = self.obj_conf_weight * obj_conf_loss_mask.to(all_square.device) * all_square
-        ##########################################
-
-        ##########################################
-        no_obj_conf_loss_mask = self.__get_no_obj_conf_loss_mask(no_obj_grid_box_mask)
-        no_obj_conf_loss = self.no_obj_conf_weight * no_obj_conf_loss_mask.to(all_square.device) * all_square
-        ##########################################
-
-        conf_loss = obj_conf_loss + no_obj_conf_loss
-        conf_loss = conf_loss.sum()
-        ##########################################
-        class_loss_mask = self.__get_class_loss_mask(obj_grid_mask)
-        class_loss = self.class_weight * class_loss_mask.to(all_square.device) * all_square
-        class_loss = class_loss.sum()
-        ##########################################
-
-        loss = position_loss + conf_loss + class_loss  # type: torch.Tensor
-
-        return loss, position_loss, conf_loss, class_loss
-
     # def forward(self, output: torch.Tensor, target: torch.Tensor) -> tuple:
     #
-    #     batch_num, s_i, s_j, d = output.shape
+    #     obj_grid_mask, obj_grid_box_mask, no_obj_grid_box_mask = self.__get_grid_and_grid_box_mask(output, target)
     #
-    #     position_loss_vec = []
-    #     conf_loss_vec = []
-    #     class_loss_vec = []
+    #     all_square = (output-target)**2
     #
-    #     for img_index in range(batch_num):
-    #         for i in range(s_i):
-    #             for j in range(s_j):
-    #                 if target[img_index, i, j, 4]:
-    #                     # class loss
-    #                     _loss = (output[img_index, i, j, 10:] - target[img_index, i, j, 10:])**2
-    #                     class_loss_vec.append(self.class_weight * _loss.sum())
+    #     ##########################################
+    #     position_loss_mask = self.__get_position_loss_mask(obj_grid_box_mask)
+    #     position_loss = position_loss_mask.to(all_square.device) * all_square
+    #     position_loss = self.pos_weight * position_loss.sum()
+    #     ##########################################
     #
-    #                     # find which box response using iou
-    #                     target_boxs = [target[img_index, i, j, 0:4].cpu().detach().numpy().copy()]
+    #     ##########################################
+    #     obj_conf_loss_mask = self.__get_obj_conf_loss_mask(obj_grid_box_mask)
+    #     obj_conf_loss = self.obj_conf_weight * obj_conf_loss_mask.to(all_square.device) * all_square
+    #     ##########################################
     #
-    #                     output_boxs = [output[img_index, i, j, 0:4].cpu().detach().numpy().copy(),
-    #                                    output[img_index, i, j, 5:9].cpu().detach().numpy().copy()]
+    #     ##########################################
+    #     no_obj_conf_loss_mask = self.__get_no_obj_conf_loss_mask(no_obj_grid_box_mask)
+    #     no_obj_conf_loss = self.no_obj_conf_weight * no_obj_conf_loss_mask.to(all_square.device) * all_square
+    #     ##########################################
     #
-    #                     ground_truth_out_iou = YOLOV1Tools.compute_boxs_iou(target_boxs,
-    #                                                                         output_boxs,
-    #                                                                         grid_index=(j, i))
+    #     conf_loss = obj_conf_loss + no_obj_conf_loss
+    #     conf_loss = conf_loss.sum()
+    #     ##########################################
+    #     class_loss_mask = self.__get_class_loss_mask(obj_grid_mask)
+    #     class_loss = self.class_weight * class_loss_mask.to(all_square.device) * all_square
+    #     class_loss = class_loss.sum()
+    #     ##########################################
     #
-    #                     if ground_truth_out_iou[0][0] > ground_truth_out_iou[0][1]:
-    #                         # box1 response  xywh
-    #                         # box2 response  conf \no obj
-    #                         _loss = (output[img_index, i, j, 0:2]-target[img_index, i, j, 0:2])**2 + (output[img_index, i, j, 2:4].log()-target[img_index, i, j, 2:4].log())**2
-    #                         position_loss_vec.append(self.pos_weight * _loss.sum())
-    #
-    #                         _loss = (output[img_index, i, j, 9]-target[img_index, i, j, 9])**2
-    #                         conf_loss_vec.append(self.no_obj_conf_weight * _loss.sum())
-    #
-    #                     else:
-    #                         # box1 response  conf \no obj
-    #                         # box2 response  xywh
-    #                         _loss = (output[img_index, i, j, 4] - target[img_index, i, j, 4]) ** 2
-    #                         conf_loss_vec.append(self.no_obj_conf_weight * _loss.sum())
-    #
-    #                         _loss = (output[img_index, i, j, 5:7]-target[img_index, i, j, 5:7])**2 + (output[img_index, i, j, 7:9].log()-target[img_index, i, j, 7:9].log())**2
-    #                         position_loss_vec.append(self.pos_weight * _loss.sum())
-    #
-    #                 else:
-    #                     _loss = (output[img_index, i, j, 4] - target[img_index, i, j, 4])**2 + (output[img_index, i, j, 9] - target[img_index, i, j, 9])**2
-    #
-    #                     conf_loss_vec.append(self.no_obj_conf_weight * _loss.sum())
-    #
-    #     position_loss = sum(position_loss_vec)
-    #     conf_loss = sum(conf_loss_vec)
-    #     class_loss = sum(class_loss_vec)
     #     loss = position_loss + conf_loss + class_loss  # type: torch.Tensor
+    #
     #     return loss, position_loss, conf_loss, class_loss
+
+    def forward(self, output: torch.Tensor, target: torch.Tensor) -> tuple:
+
+        batch_num, s_i, s_j, d = output.shape
+
+        position_loss_vec = []
+        conf_loss_vec = []
+        class_loss_vec = []
+
+        for img_index in range(batch_num):
+            for i in range(s_i):
+                for j in range(s_j):
+                    if target[img_index, i, j, 4]:
+                        # class loss
+                        _loss = (output[img_index, i, j, 10:] - target[img_index, i, j, 10:])**2
+                        class_loss_vec.append(self.class_weight * _loss.sum())
+
+                        # find which box response using iou
+                        target_boxs = [target[img_index, i, j, 0:4].cpu().detach().numpy().copy()]
+
+                        output_boxs = [output[img_index, i, j, 0:4].cpu().detach().numpy().copy(),
+                                       output[img_index, i, j, 5:9].cpu().detach().numpy().copy()]
+
+                        ground_truth_out_iou = YOLOV1Tools.compute_boxs_iou(target_boxs,
+                                                                            output_boxs,
+                                                                            grid_index=(j, i))
+
+                        if ground_truth_out_iou[0][0] > ground_truth_out_iou[0][1]:
+                            # box1 response  xywh
+                            # box2 response  conf \no obj
+                            _loss = (output[img_index, i, j, 0:2]-target[img_index, i, j, 0:2])**2 + (output[img_index, i, j, 2:4].log()-target[img_index, i, j, 2:4].log())**2
+                            position_loss_vec.append(self.pos_weight * _loss.sum())
+
+                            _loss = (output[img_index, i, j, 9]-target[img_index, i, j, 9])**2
+                            conf_loss_vec.append(self.no_obj_conf_weight * _loss.sum())
+
+                        else:
+                            # box1 response  conf \no obj
+                            # box2 response  xywh
+                            _loss = (output[img_index, i, j, 4] - target[img_index, i, j, 4]) ** 2
+                            conf_loss_vec.append(self.no_obj_conf_weight * _loss.sum())
+
+                            _loss = (output[img_index, i, j, 5:7]-target[img_index, i, j, 5:7])**2 + (output[img_index, i, j, 7:9].log()-target[img_index, i, j, 7:9].log())**2
+                            position_loss_vec.append(self.pos_weight * _loss.sum())
+
+                    else:
+                        _loss = (output[img_index, i, j, 4] - target[img_index, i, j, 4])**2 + (output[img_index, i, j, 9] - target[img_index, i, j, 9])**2
+
+                        conf_loss_vec.append(self.no_obj_conf_weight * _loss.sum())
+
+        position_loss = sum(position_loss_vec)
+        conf_loss = sum(conf_loss_vec)
+        class_loss = sum(class_loss_vec)
+        loss = position_loss + conf_loss + class_loss  # type: torch.Tensor
+        return loss, position_loss, conf_loss, class_loss
