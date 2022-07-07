@@ -14,7 +14,7 @@ class YOLOV1Tools:
         self.kinds_number = len(kinds_name)
 
     def make_targets(self, labels: list):
-        shape = (len(labels), self.grid_number[1], self.grid_number[0], self.kinds_number)
+        shape = (len(labels), self.grid_number[1], self.grid_number[0],  10 + self.kinds_number)
         target = torch.zeros(size=shape)
         # (x, y, w, h, c4) (x, y, w, h, c9) (class1, class2, ...)
         for batch_index, label in enumerate(labels):  # an image label
