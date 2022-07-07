@@ -62,6 +62,7 @@ class YoLoV1Predictor:
     def visualize(self, img: torch.Tensor, out: torch.Tensor, saved_path: str):
         assert len(img.shape) == 3
         img = img.cpu().detach().numpy().copy() * 255  # type:np.ndarray
+        img = np.transpose(img, axes=(1, 2, 0))  # type:np.ndarray
         img = np.array(img, np.uint8)  # type:np.ndarray
         img = CV2.cvtColorToBGR(img)
 
