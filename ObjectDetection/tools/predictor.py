@@ -105,11 +105,12 @@ class YoLoV1Predictor:
         res = []
         for r in range(self.grid_number[1]):
             for c in range(self.grid_number[0]):
-                print('{},{}'.format(y[r, c, 4], y[r, c, 9]))
+                # print('{},{}'.format(y[r, c, 4], y[r, c, 9]))
                 if y[r, c, 4] < self.conf_th and y[r, c, 9] < self.conf_th:
                     continue
                 else:
-                    print('has box')
+                    # print('has box')
+                    pass
 
                 class_scores = y[r, c, 10:]
                 max_class_score_index = np.argmax(class_scores)
