@@ -51,20 +51,7 @@ class YOLOV1Trainer:
 
             pre_targets = self.yolo_tools.make_targets(labels)
             pre_targets = pre_targets.cuda()
-
-            # loss, position_loss, conf_loss, class_loss = yolo_loss_fn(ouput, pre_targets)  # type: torch.Tensor
-            # optimizer.zero_grad()
-            #
-            # loss.backward()
-            # optimizer.step()
-            #
-            # print('*'*100)
-            # # print(net.state_dict()['module.detector.2.bias'])
-            # print("epoch: {:>4}, batch: {:>4}, loss: {:>10.9f}".format(epoch_id, batch_id, loss.item()))
-            # print("  >> pos_loss: {:>10.6f}, conf_loss: {:>10.6f}, cls_loss: {:>10.6f}".format(
-            #         position_loss.item(), conf_loss.item(), class_loss.item()))
-            # print('*' * 100)
-
+            # loss = self.yolo_loss_fn(ouput, pre_targets)[0]  # type: torch.Tensor
             loss = self.right_yolo_loss(ouput, pre_targets)  # type: torch.Tensor
             self.optimizer.zero_grad()
             loss.backward()
@@ -77,6 +64,8 @@ class YOLOV1Trainer:
         os.makedirs(saved_dir, exist_ok=True)
 
         for batch_id, (images, labels) in enumerate(data_loader):
+            if batch_id >= 3:
+                break
             self.model.eval()
 
             images = images.cuda()

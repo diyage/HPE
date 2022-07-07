@@ -82,7 +82,7 @@ class YoLoV1Predictor:
                           start_point=(int(abs_double_pos[0]), int(abs_double_pos[1])),
                           end_point=(int(abs_double_pos[2]), int(abs_double_pos[3])),
                           color=color,
-                          thickness=1)
+                          thickness=2)
 
             pos = (abs_double_pos[0], abs_double_pos[1], abs_double_pos[2], abs_double_pos[3])
 
@@ -95,11 +95,11 @@ class YoLoV1Predictor:
                        color=(0, 0, 255),
                        thickness=3)
 
-            grid_size = pos_trans.grid_size[0]
-            for i in range(self.grid_number[0] + 1):
-                tmp = int(i * grid_size)
-                CV2.line(img, (0, tmp), (self.image_size[0], tmp), color=(0, 0, 255), thickness=2)
-                CV2.line(img, (tmp, 0), (tmp, self.image_size[1]), color=(0, 0, 255), thickness=2)
+            # grid_size = pos_trans.grid_size[0]
+            # for i in range(self.grid_number[0] + 1):
+            #     tmp = int(i * grid_size)
+            #     CV2.line(img, (0, tmp), (self.image_size[0], tmp), color=(0, 0, 255), thickness=2)
+            #     CV2.line(img, (tmp, 0), (tmp, self.image_size[1]), color=(0, 0, 255), thickness=2)
         CV2.imwrite(saved_path, img)
 
     def decode_out(self, y: np.ndarray) -> list:
