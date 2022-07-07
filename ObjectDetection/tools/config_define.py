@@ -12,7 +12,7 @@ class TrainConfig:
     max_epoch = 500
     batch_size = 128
     lr: float = 1e-4
-    conf_th: float = 0.1,
-    prob_th: float = 0.1,
-    iou_th: float = 0.5,
+    conf_th: float = 0.1
+    prob_th: float = 0.1
+    iou_th: float = 0.5
     ABS_PATH: str = '/home/dell/data2/models/'
