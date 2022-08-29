@@ -11,15 +11,21 @@ class DataSetConfig:
     root_path = '/home/dell/data/LSP/lsp_dataset'
     connections: list = [(0, 1), (1, 2), (3, 4), (4, 5), (6, 7), (7, 8), (9, 10), (10, 11), (8, 12), (9, 12),
                          (12, 13), ((2, 3), 12), ((2, 3), 2), ((2, 3), 3)]
-    BATCH_SIZE: int = 8
 
 
 class TrainerConfig:
     lr: float = 1e-3
     device: str = 'cuda:1'
     MAX_EPOCH: int = 2000
-    ABS_PATH: str = '/home/dell/data2/models/'
+    WARM_UP_END_EPOCH: int = 5
     MAP_Threshold: list = [0.5, 0.6, 0.7]
+    BATCH_SIZE: int = 32
 
+
+class Config:
+    ABS_PATH: str = '/home/dell/data2/models/'
+    eval_frequency: int = 10
+    data_config = DataSetConfig()
+    trainer_config = TrainerConfig()
 
 

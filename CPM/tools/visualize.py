@@ -40,13 +40,15 @@ class Vis:
         :return:
         '''
         if isinstance(image, torch.Tensor):
-            image = image.cpu().detach().numpy().copy() * 255.0
+            image = image.cpu().detach().numpy().copy()
             image = np.transpose(image, axes=(1, 2, 0))
+            image = 255.0 * (image * np.array([0.5, 0.5, 0.5]) + np.array([0.5, 0.5, 0.5]))
+
             image = np.array(image, dtype=np.uint8)
-            image = CV2.cvtColorToBGR(image)
 
             heat_map = heat_map.cpu().detach().numpy().copy()
 
+        image = image.copy()
         heat_map = heat_map[:-1]  # do not use background
         image_h, image_w = image.shape[0], image.shape[1]
         heat_map_h, heat_map_w = heat_map.shape[1], heat_map.shape[2]
@@ -81,15 +83,17 @@ class Vis:
         :return:
         '''
         if isinstance(image, torch.Tensor):
-            image = image.cpu().detach().numpy().copy() * 255.0
+            image = image.cpu().detach().numpy().copy()
             image = np.transpose(image, axes=(1, 2, 0))
+            image = 255.0 * (image * np.array([0.5, 0.5, 0.5]) + np.array([0.5, 0.5, 0.5]))
+
             image = np.array(image, dtype=np.uint8)
-            image = CV2.cvtColorToBGR(image)
 
             key_point = key_point.cpu().detach().numpy().copy()
             key_point[:, 0] = key_point[:, 0] * image.shape[1]  # scaled to abs
             key_point[:, 1] = key_point[:, 1] * image.shape[0]  # scaled to abs
 
+        image = image.copy()
         for val in key_point:
             key_pos = (int(val[0]), int(val[1]))
             CV2.circle(image, key_pos, 2, (255, 255, 0), -1)

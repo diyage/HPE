@@ -7,13 +7,18 @@ class DataSetConfig:
                          (12, 13), ((2, 3), 12), ((2, 3), 2), ((2, 3), 3)]
 
     image_size: tuple = (220, 220)
-    BATCH_SIZE: int = 128
 
 
 class TrainerConfig:
-    lr: float = 2e-4
-    device: str = 'cuda:1'
-    MAX_EPOCH: int = 200
+    lr: float = 1e-3
+    device: str = 'cpu'
+    BATCH_SIZE: int = 128
+    MAX_EPOCH: int = 500
+    WARM_UP_END_EPOCH: int = 5
+
+
+class Config:
     ABS_PATH: str = '/home/dell/data2/models/'
-
-
+    eval_frequency: int = 10
+    data_config = DataSetConfig()
+    trainer_config = TrainerConfig()

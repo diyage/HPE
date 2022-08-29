@@ -7,7 +7,10 @@ import numpy as np
 
 
 class CPMNet(nn.Module):
-    def __init__(self, data_set_config: DataSetConfig):
+    def __init__(
+            self,
+            data_set_config: DataSetConfig
+    ):
         super().__init__()
         self.img_h = data_set_config.image_h
         self.img_w = data_set_config.image_w
@@ -314,3 +317,15 @@ class CPMNet(nn.Module):
         return torch.from_numpy(np.array(res)).to(device)
 
 
+def debug_model():
+    config = DataSetConfig()
+    net = CPMNet(config)
+    x = torch.rand(size=(1, 3, config.image_h, config.image_w))
+    out = net(x, heat_map_sigma=0.15)
+    print(out.shape)
+    best_out = net.get_best_out(out)
+    print(best_out.shape)
+
+
+if __name__ == "__main__":
+    debug_model()
